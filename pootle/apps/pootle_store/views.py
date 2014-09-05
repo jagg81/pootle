@@ -874,6 +874,13 @@ def submit(request, unit):
     if form.is_valid():
         if form.updated_fields:
             for field, old_value, new_value in form.updated_fields:
+                if field == SubmissionFields.SOURCE:
+                    logging.warning(
+                        u'Corrupted submission for unit_id {0} - ' \
+                        u'field_values - (old_value, {1}), (new_value, {2}) - ' \
+                        u'request info - {3}'.format(unit.id, old_value, new_value, repr(request))
+                    )
+                    continue
                 sub = Submission(
                         creation_time=current_time,
                         translation_project=translation_project,
