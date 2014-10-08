@@ -32,7 +32,7 @@ from pootle_statistics.models import (Submission, SubmissionFields,
                                       SubmissionTypes)
 from pootle_store.models import Unit
 from pootle_store.util import UNTRANSLATED, FUZZY, TRANSLATED
-from pootle_store.fields import PLURAL_PLACEHOLDER, to_db
+from pootle_store.fields import to_db
 
 ############## text cleanup and highlighting #########################
 
@@ -205,11 +205,9 @@ def unit_form_factory(language, snplurals=None, request=None):
         class Meta:
             model = Unit
             exclude = ['store', 'developer_comment', 'translator_comment',
-                       'submitted_by', 'commented_by']
+                       'submitted_by', 'commented_by', 'source_f']
 
         id = forms.IntegerField(required=False)
-        source_f = MultiStringFormField(nplurals=snplurals or 1,
-                                        required=False, textarea=False)
         target_f = MultiStringFormField(nplurals=tnplurals, required=False,
                                         attrs=target_attrs)
         state = UnitStateField(required=False, label=_('Needs work'),
@@ -220,20 +218,6 @@ def unit_form_factory(language, snplurals=None, request=None):
         def __init__(self, *args, **argv):
             super(UnitForm, self).__init__(*args, **argv)
             self.updated_fields = []
-
-        def clean_source_f(self):
-            value = self.cleaned_data['source_f']
-
-            if self.instance.source.strings != value:
-                self.instance._source_updated = True
-                self.updated_fields.append((SubmissionFields.SOURCE,
-                                            to_db(self.instance.source),
-                                            to_db(value)))
-            if snplurals == 1:
-                # plural with single form, insert placeholder
-                value.append(PLURAL_PLACEHOLDER)
-
-            return value
 
         def clean_target_f(self):
             value = self.cleaned_data['target_f']
