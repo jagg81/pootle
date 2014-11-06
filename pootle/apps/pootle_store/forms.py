@@ -222,15 +222,12 @@ def unit_form_factory(language, snplurals=None, request=None):
             self.updated_fields = []
 
         def clean_source_f(self):
-            value = self.cleaned_data['source_f']
+            # NOTE(jgonzale|2014-09-05|INTL-591): treat it as readonly attribute field, it should not be modified
+            value = self.instance.source.strings
 
-            if self.instance.source.strings != value:
-                self.instance._source_updated = True
-                self.updated_fields.append((SubmissionFields.SOURCE,
-                                            to_db(self.instance.source),
-                                            to_db(value)))
             if snplurals == 1:
                 # plural with single form, insert placeholder
+                value = list(value)
                 value.append(PLURAL_PLACEHOLDER)
 
             return value

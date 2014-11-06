@@ -874,7 +874,7 @@ def submit(request, unit):
     if form.is_valid():
         if form.updated_fields:
             for field, old_value, new_value in form.updated_fields:
-                # (jgonzale|2014-09-05|INTL-591): skip unsolicited modification to the source field.
+                # (jgonzale|2014-09-05|INTL-591): log unsolicited modification to the source field
                 if field == SubmissionFields.SOURCE:
                     logging.warning(
                         u'Corrupted submission for (unit_id, {0}) - ' \
@@ -882,7 +882,6 @@ def submit(request, unit):
                         u'(source_old_value, {2}) ' \
                         u'(request info - {3})'.format(unit.id, request.profile, old_value, repr(request))
                     )
-                    continue
                 sub = Submission(
                         creation_time=current_time,
                         translation_project=translation_project,
