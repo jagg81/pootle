@@ -855,7 +855,10 @@ def submit(request, unit):
 
     # (jgonzale|2014-12-04|INTL-1824): check for corrupted translation requests
     if unit.id != int(request.POST['id']):
-        logging.warning(u'submission aborted (request info - {0})'.format(repr(request)))
+        logging.warning(
+            u'submission aborted (request info -\
+            REQUEST_URI {0},\
+            POST unit id {1})'.format(request.META['REQUEST_URI'], request.POST['id']))
         return HttpResponseBadRequest('There seems to be something wrong with this request. Please try again later.')
 
     translation_project = request.translation_project
