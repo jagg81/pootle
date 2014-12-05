@@ -24,7 +24,7 @@ import logging
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import loader, RequestContext
 from django.utils.translation import to_locale, ugettext as _
@@ -853,6 +853,11 @@ def submit(request, unit):
         raise PermissionDenied(_("You do not have rights to access "
                                  "translation mode."))
 
+    # (jgonzale|2014-12-04|INTL-1824): check for corrupted translation requests
+    if unit.id != int(request.POST['id']):
+        logging.warning(u'submission aborted (request info - {0})'.format(repr(request)))
+        return HttpResponseBadRequest('There seems to be something wrong with this request. Please try again later.')
+
     translation_project = request.translation_project
     language = translation_project.language
 
@@ -874,14 +879,6 @@ def submit(request, unit):
     if form.is_valid():
         if form.updated_fields:
             for field, old_value, new_value in form.updated_fields:
-                # (jgonzale|2014-09-05|INTL-591): log unsolicited modification to the source field
-                if field == SubmissionFields.SOURCE:
-                    logging.warning(
-                        u'Corrupted submission for (unit_id, {0}) - ' \
-                        u'(submitter, {1}) ' \
-                        u'(source_old_value, {2}) ' \
-                        u'(request info - {3})'.format(unit.id, request.profile, old_value, repr(request))
-                    )
                 sub = Submission(
                         creation_time=current_time,
                         translation_project=translation_project,
